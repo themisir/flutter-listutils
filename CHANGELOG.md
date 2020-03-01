@@ -1,3 +1,7 @@
+## [0.1.4] - 3/2/2020
+
+* Added header property to NetworkListAdapter
+
 ## [0.1.3] - 3/2/2020
 
 * Renamed from listutils to listview_utils

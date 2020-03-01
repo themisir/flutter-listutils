@@ -1,8 +1,8 @@
-# ListView Utils
+# 📃 ListView Utils
 
 Additional utils for flutter `ListView` component.
 
-## Getting Started
+## 🌟 Getting Started
 
 Add those lines to `pubspec.yaml` file and run `flutter pub get`.
 
@@ -21,7 +21,7 @@ import 'package:listview_utils/listview_utils.dart';
 
 This will import required classes to use **listview_utils**.
 
-## Properties
+## ⚙ Properties
 
 ```dart
 CustomListView(
@@ -75,7 +75,7 @@ CustomListView(
 ),
 ```
 
-## Adapters
+## 🔌 Adapters
 
 ListView Utils currently only supports network adapter. Or you could write your own adapter by implementing `BaseListAdapter` mixin or using `ListAdapter` class.
 
@@ -89,7 +89,7 @@ NetworkListAdapter(
 ),
 ```
 
-## Example
+## 📝 Example
 
 ```dart
 CustomListView(
