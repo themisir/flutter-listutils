@@ -1,3 +1,9 @@
+## [0.1.0] - 3/1/2020
+
+* Fixed major bugs
+* Added example project
+* Readme created
+
 ## [0.0.2] - 3/1/2020
 
 * Added description

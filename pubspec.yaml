@@ -1,6 +1,6 @@
 name: listutils
-description: This package adds additional features (infinite scrolling, loading widgets, header, footer, adapter support) to flutter's ListView widget.
-version: 0.0.3
+description: Infinite scrolling list view with multiple data source mode support using adapters. Also supports header, footer widgets.
+version: 0.1.0
 homepage: https://github.com/TheMisir/flutter-listutils
 
 environment:

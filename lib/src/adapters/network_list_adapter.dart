@@ -4,13 +4,13 @@ import 'package:listutils/listutils.dart';
 import 'package:http/http.dart';
 import 'package:http/io_client.dart';
 
-class NetworkListAdapter implements ListAdapter {
+class NetworkListAdapter implements BaseListAdapter {
   final BaseClient client;
   final String url;
   final String limitParam;
   final String offsetParam;
 
-  NetworkListAdapter({
+  const NetworkListAdapter({
     this.client,
     this.url,
     this.limitParam,
@@ -34,7 +34,6 @@ class NetworkListAdapter implements ListAdapter {
   Future<ListItems> getItems(int offset, int limit) async {
     var finalUrl = '$url${url.contains('?') ? '&' : '?'}$offsetParam='
         '${offset.toString()}&$limitParam=${limit.toString()}';
-
     var response = await _withClient((client) {
       return client.get(finalUrl);
     });

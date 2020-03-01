@@ -5,12 +5,12 @@ import 'package:provider/provider.dart';
 import 'adapters/list_adapter.dart';
 import 'types.dart';
 
-class CustomList extends StatefulWidget {
+class CustomListView extends StatefulWidget {
   final int pageSize;
   final Widget header;
   final Widget footer;
   final Widget empty;
-  final ListAdapter adapter;
+  final BaseListAdapter adapter;
   final List<Widget> children;
   final WidgetBuilder loadingBuilder;
   final ItemBuilder itemBuilder;
@@ -24,14 +24,14 @@ class CustomList extends StatefulWidget {
   final Axis scrollDirection;
   final bool shrinkWrap;
 
-  const CustomList({
+  const CustomListView({
     Key key,
     this.pageSize = 30,
     this.header,
     this.footer,
     this.empty,
     this.adapter,
-    this.itemBuilder,
+    @required this.itemBuilder,
     this.loadingBuilder,
     this.separatorBuilder,
     this.padding,
@@ -40,34 +40,58 @@ class CustomList extends StatefulWidget {
     this.itemCount,
     this.onLoadMore,
     this.onRefresh,
-    this.disableRefresh,
-    this.scrollDirection,
-    this.shrinkWrap,
+    this.disableRefresh = false,
+    this.scrollDirection = Axis.vertical,
+    this.shrinkWrap = false,
   })  : assert(children != null || itemBuilder != null),
         assert(children != null || adapter != null || itemCount != null),
         super(key: key);
 
   @override
-  CustomListState createState() => CustomListState();
+  CustomListViewState createState() => CustomListViewState();
 }
 
-class CustomListState extends State<CustomList> {
+class CustomListViewState extends State<CustomListView> {
   List items = [];
   Future future;
   bool reachedToEnd = false;
 
-  Future fetchFromAdapter({int offset, bool merge = true}) async {
-    var skip = offset ?? items?.length ?? 0;
-    var result = await widget.adapter.getItems(skip, widget.pageSize);
+  bool _loading = false;
+  bool _fetching = false;
 
-    setState(() {
-      reachedToEnd = result.reachedToEnd ?? false;
-      if (merge) {
-        items.addAll(result.items);
-      } else {
-        items = result.items.toList();
-      }
-    });
+  bool get loading => _loading;
+  bool get fetching => _fetching;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.adapter != null) {
+      future = fetchFromAdapter();
+    } else if (widget.onLoadMore != null) {
+      future = widget.onLoadMore();
+    }
+  }
+
+  Future fetchFromAdapter({int offset, bool merge = true}) async {
+    if (_fetching) return;
+
+    _fetching = true;
+    try {
+      var skip = offset ?? items?.length ?? 0;
+      var result = await widget.adapter.getItems(skip, widget.pageSize);
+
+      setState(() {
+        reachedToEnd = result.reachedToEnd ?? false;
+        if (merge) {
+          items.addAll(result.items);
+        } else {
+          items = result.items.toList();
+        }
+      });
+    } finally {
+      _fetching = false;
+    }
   }
 
   Future reload() async {
@@ -84,16 +108,24 @@ class CustomListState extends State<CustomList> {
   }
 
   Future loadMore() async {
-    if (reachedToEnd) return;
+    if (reachedToEnd || _loading) return;
     if (widget.adapter == null && widget.onLoadMore == null) return;
 
-    setState(() {
+    _loading = true;
+
+    try {
       if (widget.adapter != null) {
         future = fetchFromAdapter();
       } else {
         future = widget.onLoadMore();
       }
-    });
+
+      setState(() {});
+
+      await future;
+    } finally {
+      _loading = false;
+    }
   }
 
   // ignore: missing_return
@@ -123,12 +155,18 @@ class CustomListState extends State<CustomList> {
     }
 
     if (widget.empty != null) {
-      if (index == itemCount) return widget.empty;
+      if (index == itemCount) {
+        if (itemCount == 0) {
+          return widget.empty;
+        } else {
+          return Container();
+        }
+      }
       index--;
     }
 
-    if (index == itemCount) {
-      if (widget.loadingBuilder != null) {
+    if (widget.loadingBuilder != null) {
+      if (index == itemCount) {
         return Consumer<Future>(
           builder: (context, future, _) {
             return FutureBuilder(
@@ -143,12 +181,16 @@ class CustomListState extends State<CustomList> {
             );
           },
         );
-      } else if (widget.footer != null) {
-        return widget.footer;
       }
+      index--;
     }
 
-    throw Exception('Custom list item should be build, check itemCount.');
+    if (widget.footer != null) {
+      if (index == itemCount) return widget.footer;
+      index--;
+    }
+
+    throw Exception('Failed to render list item, the index is out of bounds.');
   }
 
   Widget buildList(BuildContext context) {

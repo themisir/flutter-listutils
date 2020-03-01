@@ -5,7 +5,7 @@ class CustomListLoading extends StatelessWidget {
   final double indicatorSize;
   final double strokeWidth;
 
-  static WidgetBuilder defaultBuilder = (context) => const CustomListLoading();
+  static WidgetBuilder defaultBuilder = (context) => CustomListLoading();
 
   const CustomListLoading({
     this.height = 100,

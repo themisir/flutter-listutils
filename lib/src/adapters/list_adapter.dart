@@ -1,12 +1,25 @@
 library listutils;
 
-class ListItems<T> {
-  final Iterable<T> items;
+import 'package:flutter/foundation.dart';
+
+class ListItems {
+  final Iterable items;
   final bool reachedToEnd;
 
   ListItems(this.items, {this.reachedToEnd = false});
 }
 
-mixin ListAdapter<T> {
-  Future<ListItems<T>> getItems(int offset, int limit);
+mixin BaseListAdapter<T> {
+  Future<ListItems> getItems(int offset, int limit);
+}
+
+class ListAdapter implements BaseListAdapter {
+  final Future<ListItems> Function(int offset, int limit) fetchItems;
+
+  ListAdapter({@required this.fetchItems}) : assert(fetchItems != null);
+
+  @override
+  Future<ListItems> getItems(int offset, int limit) {
+    return fetchItems(offset, limit);
+  }
 }
