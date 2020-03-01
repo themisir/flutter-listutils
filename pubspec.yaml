@@ -1,0 +1,22 @@
+name: listutils
+description: Additional utils for flutter List component
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: ">=2.2.2 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # A mixture between dependency injection and state management, built with
+  # widgets for widgets.
+  provider: ^4.0.4
+
+  # A composable, multi-platform, Future-based API for HTTP requests.
+  http: ^0.12.0+4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
