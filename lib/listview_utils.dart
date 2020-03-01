@@ -1,4 +1,4 @@
-library listutils;
+library listview_utils;
 
 export 'src/adapters/list_adapter.dart';
 export 'src/list_loading.dart';

@@ -1,6 +1,6 @@
-name: listutils
+name: listview_utils
 description: Infinite scrolling list view with multiple data source mode support using adapters. Also supports header, footer widgets.
-version: 0.1.0
+version: 0.1.3
 homepage: https://github.com/TheMisir/flutter-listutils
 
 environment:

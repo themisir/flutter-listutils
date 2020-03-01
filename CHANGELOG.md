@@ -1,3 +1,8 @@
+## [0.1.3] - 3/2/2020
+
+* Renamed from listutils to listview_utils
+* Example code simplified
+
 ## [0.1.0] - 3/1/2020
 
 * Fixed major bugs

@@ -1,25 +1,25 @@
-# ListUtils
+# ListView Utils
 
-Additional utils for flutter List component
+Additional utils for flutter `ListView` component.
 
 ## Getting Started
 
 Add those lines to `pubspec.yaml` file and run `flutter pub get`.
 
-```dart
+```yaml
 dependencies:
-  listutils: ^0.0.3
+  listview_utils: ^0.1.3
 ```
 
-Check out [Installing](https://pub.dev/packages/listutils#-installing-tab-) tab for more details.
+Check out [Installing](https://pub.dev/packages/listview_utils#-installing-tab-) tab for more details.
 
-Import **listutils** package to your application by adding this line:
+Import **listview_utils** package to your application by adding this line:
 
 ```dart
-import 'package:listutils/listutils.dart';
+import 'package:listview_utils/listview_utils.dart';
 ```
 
-This will import required classes to use listutils.
+This will import required classes to use **listview_utils**.
 
 ## Properties
 
@@ -77,7 +77,7 @@ CustomListView(
 
 ## Adapters
 
-Listutils currently only supports network adapter. Or you could write your own adapter by implementing `BaseListAdapter` mixin or using `ListAdapter` class.
+ListView Utils currently only supports network adapter. Or you could write your own adapter by implementing `BaseListAdapter` mixin or using `ListAdapter` class.
 
 Here's simple network adapter code using jsonplaceholder data.
 
