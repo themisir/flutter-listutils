@@ -8,7 +8,7 @@ Add those lines to `pubspec.yaml` file and run `flutter pub get`.
 
 ```yaml
 dependencies:
-  listview_utils: ^0.1.3
+  listview_utils: ^0.1.5
 ```
 
 Check out [Installing](https://pub.dev/packages/listview_utils#-installing-tab-) tab for more details.
@@ -24,7 +24,7 @@ This will import required classes to use **listview_utils**.
 ## ⚙ Properties
 
 ```dart
-CustomListView(
+CustomListView( 
   // Items fetched per request (default: 30)
   pageSize: 30,
 
@@ -49,6 +49,19 @@ CustomListView(
     // If items provided by adapter the `item` argument will be matching element
     return ListTile(
       title: Text(item['title']),
+    );
+  },
+
+  // Callback function to build widget if exception occurs during fetching items
+  errorBuilder: (BuildContext context, LoadErrorDetails details, CustomListViewState state) {
+    return Column(
+      children: <Widget>[
+        Text(details.error.toString()),
+        RaisedButton(
+          onPressed: () => state.loadMore(),
+          child: Text('Retry'),
+        ),
+      ],
     );
   },
 

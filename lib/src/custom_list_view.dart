@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +17,7 @@ class CustomListView extends StatefulWidget {
   final WidgetBuilder loadingBuilder;
   final ItemBuilder itemBuilder;
   final SeparatorBuilder separatorBuilder;
+  final LoadErrorBuilder errorBuilder;
   final AsyncCallback onRefresh;
   final AsyncCallback onLoadMore;
   final bool disableRefresh;
@@ -23,6 +26,7 @@ class CustomListView extends StatefulWidget {
   final int itemCount;
   final Axis scrollDirection;
   final bool shrinkWrap;
+  final Duration debounceDuration;
 
   const CustomListView({
     Key key,
@@ -34,6 +38,7 @@ class CustomListView extends StatefulWidget {
     @required this.itemBuilder,
     this.loadingBuilder,
     this.separatorBuilder,
+    this.errorBuilder,
     this.padding,
     this.physics,
     this.children,
@@ -43,8 +48,10 @@ class CustomListView extends StatefulWidget {
     this.disableRefresh = false,
     this.scrollDirection = Axis.vertical,
     this.shrinkWrap = false,
+    this.debounceDuration = const Duration(milliseconds: 500),
   })  : assert(children != null || itemBuilder != null),
         assert(children != null || adapter != null || itemCount != null),
+        assert(debounceDuration != null),
         super(key: key);
 
   @override
@@ -58,6 +65,8 @@ class CustomListViewState extends State<CustomListView> {
 
   bool _loading = false;
   bool _fetching = false;
+  LoadErrorDetails _errorDetails;
+  Timer _loadDebounce;
 
   bool get loading => _loading;
   bool get fetching => _fetching;
@@ -65,18 +74,14 @@ class CustomListViewState extends State<CustomListView> {
   @override
   void initState() {
     super.initState();
-
-    if (widget.adapter != null) {
-      future = fetchFromAdapter();
-    } else if (widget.onLoadMore != null) {
-      future = widget.onLoadMore();
-    }
+    loadMore();
   }
 
   Future fetchFromAdapter({int offset, bool merge = true}) async {
     if (_fetching) return;
 
     _fetching = true;
+
     try {
       var skip = offset ?? items?.length ?? 0;
       var result = await widget.adapter.getItems(skip, widget.pageSize);
@@ -110,22 +115,31 @@ class CustomListViewState extends State<CustomListView> {
   Future loadMore() async {
     if (reachedToEnd || _loading) return;
     if (widget.adapter == null && widget.onLoadMore == null) return;
+    if (_loadDebounce?.isActive ?? false) _loadDebounce.cancel();
 
-    _loading = true;
+    _loadDebounce = Timer(widget.debounceDuration, () async {
+      _loading = true;
 
-    try {
-      if (widget.adapter != null) {
-        future = fetchFromAdapter();
-      } else {
-        future = widget.onLoadMore();
+      try {
+        if (widget.adapter != null) {
+          this.future = fetchFromAdapter();
+        } else {
+          this.future = widget.onLoadMore();
+        }
+
+        setState(() {});
+
+        await future;
+      } catch (e, stack) {
+        if (mounted) {
+          setState(() {
+            _errorDetails = LoadErrorDetails(e, stackTrace: stack);
+          });
+        }
+      } finally {
+        _loading = false;
       }
-
-      setState(() {});
-
-      await future;
-    } finally {
-      _loading = false;
-    }
+    });
   }
 
   // ignore: missing_return
@@ -165,7 +179,7 @@ class CustomListViewState extends State<CustomListView> {
       index--;
     }
 
-    if (widget.loadingBuilder != null) {
+    if (widget.loadingBuilder != null || widget.errorBuilder != null) {
       if (index == itemCount) {
         return Consumer<Future>(
           builder: (context, future, _) {
@@ -174,6 +188,16 @@ class CustomListViewState extends State<CustomListView> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return widget.loadingBuilder(context);
+                } else if (widget.errorBuilder != null) {
+                  return Consumer<LoadErrorDetails>(
+                    builder: (context, details, _) {
+                      if (details == null) {
+                        return Container();
+                      } else {
+                        return widget.errorBuilder(context, details, this);
+                      }
+                    },
+                  );
                 } else {
                   return Container();
                 }
@@ -211,7 +235,9 @@ class CustomListViewState extends State<CustomListView> {
     int count = itemCount +
         (widget.header != null ? 1 : 0) +
         (widget.footer != null ? 1 : 0) +
-        (widget.loadingBuilder != null ? 1 : 0) +
+        ((widget.loadingBuilder != null || widget.errorBuilder != null)
+            ? 1
+            : 0) +
         (widget.empty != null ? 1 : 0);
 
     if (widget.separatorBuilder == null) {
@@ -242,15 +268,19 @@ class CustomListViewState extends State<CustomListView> {
       onNotification: handleScrollNotification,
       child: buildList(context),
     );
+    Widget content = widget.disableRefresh
+        ? notificationListener
+        : RefreshIndicator(
+            onRefresh: refresh,
+            child: notificationListener,
+          );
 
     return Provider<Future>.value(
       value: future,
-      child: widget.disableRefresh
-          ? notificationListener
-          : RefreshIndicator(
-              onRefresh: refresh,
-              child: notificationListener,
-            ),
+      child: Provider<LoadErrorDetails>.value(
+        value: _errorDetails,
+        child: content,
+      ),
     );
   }
 }
