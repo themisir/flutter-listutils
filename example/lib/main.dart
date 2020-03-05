@@ -19,7 +19,7 @@ void main() {
             child: Text('Footer'),
           ),
         ),
-        adapter: const NetworkListAdapter(
+        adapter: NetworkListAdapter(
           url: 'https://jsonplaceholder.typicode.com/posts',
           limitParam: '_limit',
           offsetParam: '_start',

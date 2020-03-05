@@ -11,17 +11,19 @@ class NetworkListAdapter implements BaseListAdapter {
   final String url;
   final String limitParam;
   final String offsetParam;
+  final bool disablePagination;
   final Map<String, String> headers;
 
   const NetworkListAdapter({
     @required this.url,
-    @required this.limitParam,
-    @required this.offsetParam,
+    this.limitParam,
+    this.offsetParam,
+    this.disablePagination = false,
     this.client,
     this.headers,
   })  : assert(url != null),
-        assert(limitParam != null),
-        assert(offsetParam != null);
+        assert(disablePagination == true || limitParam != null),
+        assert(disablePagination == true || offsetParam != null);
 
   Future<T> _withClient<T>(Future<T> Function(BaseClient client) fn) async {
     if (client != null) {
@@ -38,8 +40,9 @@ class NetworkListAdapter implements BaseListAdapter {
 
   @override
   Future<ListItems> getItems(int offset, int limit) async {
-    var finalUrl = '$url${url.contains('?') ? '&' : '?'}$offsetParam='
-        '${offset.toString()}&$limitParam=${limit.toString()}';
+    var finalUrl = disablePagination != true
+        ? _generateUrl(url, {offsetParam: offset, limitParam: limit})
+        : url;
 
     var response = await _withClient((client) {
       return client.get(finalUrl, headers: headers);
@@ -47,9 +50,23 @@ class NetworkListAdapter implements BaseListAdapter {
 
     if (response.statusCode < 300) {
       Iterable items = json.decode(utf8.decode(response.bodyBytes));
-      return ListItems(items, reachedToEnd: items.length == 0);
+      return ListItems(
+        items,
+        reachedToEnd: disablePagination == true || items.length == 0,
+      );
     } else {
       throw ClientException('HTTP ${response.statusCode}: Failed to fetch');
     }
   }
+}
+
+String _generateUrl(String url, Map<String, dynamic> params) {
+  url += url.contains('?') ? '&' : '?';
+  params.forEach((key, value) {
+    url += '$key=${Uri.encodeComponent(value.toString())}&';
+  });
+
+  if (url.endsWith('&')) url = url.substring(0, url.length - 1);
+
+  return url;
 }

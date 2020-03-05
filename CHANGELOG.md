@@ -1,3 +1,7 @@
+## [0.1.6] - 3/5/2020
+
+* Added `disablePagination` property to `NetworkListAdapter`
+
 ## [0.1.5] - 3/2/2020
 
 * Added `errorBuilder` property to `CustomListView`
