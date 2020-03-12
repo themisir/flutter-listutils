@@ -1,3 +1,7 @@
+## [0.1.6+1] - 3/12/2020
+
+* Fixed memory leak issue
+
 ## [0.1.6] - 3/5/2020
 
 * Added `disablePagination` property to `NetworkListAdapter`

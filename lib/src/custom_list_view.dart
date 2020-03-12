@@ -86,14 +86,16 @@ class CustomListViewState extends State<CustomListView> {
       var skip = offset ?? items?.length ?? 0;
       var result = await widget.adapter.getItems(skip, widget.pageSize);
 
-      setState(() {
-        reachedToEnd = result.reachedToEnd ?? false;
-        if (merge) {
-          items.addAll(result.items);
-        } else {
-          items = result.items.toList();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          reachedToEnd = result.reachedToEnd ?? false;
+          if (merge) {
+            items.addAll(result.items);
+          } else {
+            items = result.items.toList();
+          }
+        });
+      }
     } finally {
       _fetching = false;
     }
