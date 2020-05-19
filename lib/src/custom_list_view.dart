@@ -8,26 +8,6 @@ import 'adapters/list_adapter.dart';
 import 'types.dart';
 
 class CustomListView extends StatefulWidget {
-  final int pageSize;
-  final Widget header;
-  final Widget footer;
-  final Widget empty;
-  final BaseListAdapter adapter;
-  final List<Widget> children;
-  final WidgetBuilder loadingBuilder;
-  final ItemBuilder itemBuilder;
-  final SeparatorBuilder separatorBuilder;
-  final LoadErrorBuilder errorBuilder;
-  final AsyncCallback onRefresh;
-  final AsyncCallback onLoadMore;
-  final bool disableRefresh;
-  final EdgeInsets padding;
-  final ScrollPhysics physics;
-  final int itemCount;
-  final Axis scrollDirection;
-  final bool shrinkWrap;
-  final Duration debounceDuration;
-
   const CustomListView({
     Key key,
     this.pageSize = 30,
@@ -41,7 +21,6 @@ class CustomListView extends StatefulWidget {
     this.errorBuilder,
     this.padding,
     this.physics,
-    this.children,
     this.itemCount,
     this.onLoadMore,
     this.onRefresh,
@@ -49,10 +28,67 @@ class CustomListView extends StatefulWidget {
     this.scrollDirection = Axis.vertical,
     this.shrinkWrap = false,
     this.debounceDuration = const Duration(milliseconds: 500),
-  })  : assert(children != null || itemBuilder != null),
-        assert(children != null || adapter != null || itemCount != null),
+  })  : assert(itemBuilder != null),
+        assert(adapter != null || itemCount != null),
         assert(debounceDuration != null),
         super(key: key);
+
+  /// Item count to request on each time list is scrolled to the end
+  final int pageSize;
+
+  /// Widget to be be displayed on the top of other items
+  final Widget header;
+
+  /// Widget that displayed after all of the items
+  final Widget footer;
+
+  /// Widget that's displayed if no item is available to display
+  final Widget empty;
+
+  /// List adapter used to fetch items dynamically
+  final BaseListAdapter adapter;
+
+  /// Loading widget builder, displayed when data is fetching from [adapter] or
+  /// [onLoadMore] is called
+  final WidgetBuilder loadingBuilder;
+
+  /// Same as flutter's [ListView.builder] itemBuilder
+  final ItemBuilder itemBuilder;
+
+  /// Same as flutter's [ListView.separated] separatorBuilder
+  final SeparatorBuilder separatorBuilder;
+
+  /// Builds widget when loading failed
+  final LoadErrorBuilder errorBuilder;
+
+  /// Called when refresh is triggered, default behaviour is to set offset to
+  /// zero and re-load entries from [adapter]
+  final AsyncCallback onRefresh;
+
+  /// Called when list is scrolled to the end
+  final AsyncCallback onLoadMore;
+
+  /// Set true if you would like to disable pull to refres
+  /// gesture
+  final bool disableRefresh;
+
+  /// Edge padding
+  final EdgeInsets padding;
+
+  /// Scroll physics
+  final ScrollPhysics physics;
+
+  /// Set this to use this widget like [ListView.builder]
+  final int itemCount;
+
+  /// Scroll direction
+  final Axis scrollDirection;
+
+  /// TODO: Add description
+  final bool shrinkWrap;
+
+  /// Debounce duration to throttle load requests
+  final Duration debounceDuration;
 
   @override
   CustomListViewState createState() => CustomListViewState();
@@ -153,7 +189,7 @@ class CustomListViewState extends State<CustomListView> {
   }
 
   int get itemCount {
-    return widget.children?.length ?? widget.itemCount ?? items.length;
+    return widget.itemCount ?? items.length;
   }
 
   Widget buildItem(BuildContext context, int index) {
@@ -220,20 +256,6 @@ class CustomListViewState extends State<CustomListView> {
   }
 
   Widget buildList(BuildContext context) {
-    if (widget.children != null && widget.separatorBuilder == null) {
-      return ListView(
-        padding: widget.padding,
-        physics: widget.physics,
-        scrollDirection: widget.scrollDirection,
-        shrinkWrap: widget.shrinkWrap,
-        children: <Widget>[
-          if (widget.header != null) widget.header,
-          ...widget.children,
-          if (widget.footer != null) widget.footer
-        ],
-      );
-    }
-
     int count = itemCount +
         (widget.header != null ? 1 : 0) +
         (widget.footer != null ? 1 : 0) +
