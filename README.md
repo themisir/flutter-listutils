@@ -2,7 +2,68 @@
 
 Additional utils for flutter `ListView` component.
 
-## 🌟 Getting Started
+## Migration guide from 0.1.X to 0.2.Y
+
+### `children` property removed
+
+If you want to use children property with `CustomListView`, I suggest you to use flutter's own `ListView` component instead. We wanted to focus on dynamic sources rather than static ones.
+
+### `onErrorBuilder` property type changed
+
+<table>
+<tr><th>Old</th><th>New</th></tr>
+<tr><td>
+  
+```dart
+CustomListView(
+  onErrorBuilder: (context, details, listView) {
+    // Print throwed exception to console
+    print(details.error);
+  },
+)
+```
+  
+</td><td>
+
+```dart
+CustomListView(
+  onErrorBuilder: (context, error, listView) {
+    // Print throwed exception to console
+    print(error);
+  },
+)
+```
+  
+</td></tr>
+</table>
+
+### `onLoadMore` property deprecated
+
+You need to convert custom data source handlers to list adapters. Here's simple example how to implement your own list adapter.
+
+```dart
+class MyListAdapter implements BaseListAdapter {
+  const MyListAdapter(this.url);
+  
+  final String url;
+
+  @override
+  Future<ListItems> getItems(int offset, int limit) async {
+    // To handle errors using `errorBuilder` you need to not use *try/catch* block.
+    fetch response = await http.get(`url?_offset=$offset&_limit=$limit`);
+    fetch data = jsonDecode(response.data);
+    
+    return ListItems(data, reachedToEnd: data.length == 0);
+  }
+  
+  @override
+  bool shouldUpdate(MyListAdapter old) {
+    return old.url != url;
+  }
+}
+```
+
+## Getting Started
 
 Add those lines to `pubspec.yaml` file and run `flutter pub get`.
 
@@ -21,7 +82,7 @@ import 'package:listview_utils/listview_utils.dart';
 
 This will import required classes to use **listview_utils**.
 
-## ⚙ Properties
+## Properties
 
 ```dart
 CustomListView( 
@@ -78,7 +139,7 @@ CustomListView(
 ),
 ```
 
-## 🔌 Adapters
+## Adapters
 
 ListView Utils currently only supports network adapter. Or you could write your own adapter by implementing `BaseListAdapter` mixin or using `ListAdapter` class.
 
@@ -92,7 +153,7 @@ NetworkListAdapter(
 ),
 ```
 
-## 📝 Example
+## Example
 
 ```dart
 CustomListView(
