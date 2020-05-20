@@ -7,10 +7,12 @@ typedef ItemBuilder = Widget Function(
   int index,
   dynamic item,
 );
+
 typedef SeparatorBuilder = Widget Function(
   BuildContext context,
   int index,
 );
+
 typedef LoadErrorBuilder = Widget Function(
   BuildContext context,
   dynamic error,
