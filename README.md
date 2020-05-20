@@ -50,8 +50,8 @@ class MyListAdapter implements BaseListAdapter {
   @override
   Future<ListItems> getItems(int offset, int limit) async {
     // To handle errors using `errorBuilder` you need to not use *try/catch* block.
-    fetch response = await http.get(`url?_offset=$offset&_limit=$limit`);
-    fetch data = jsonDecode(response.data);
+    final response = await http.get(`url?_offset=$offset&_limit=$limit`);
+    final data = jsonDecode(response.data);
     
     return ListItems(data, reachedToEnd: data.length == 0);
   }
