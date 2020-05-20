@@ -1,4 +1,4 @@
-# 📃 ListView Utils
+# 📃 ListView_Utils
 
 Additional utils for flutter `ListView` component.
 
@@ -8,7 +8,7 @@ Add those lines to `pubspec.yaml` file and run `flutter pub get`.
 
 ```yaml
 dependencies:
-  listview_utils: ^0.1.5
+  listview_utils: <latest>
 ```
 
 Check out [Installing](https://pub.dev/packages/listview_utils#-installing-tab-) tab for more details.
@@ -65,18 +65,8 @@ CustomListView(
     );
   },
 
-  // Static list of items
-  children: <Widget>[
-    ...
-  ],
-
   // Item count
   itemCount: 45,
-
-  // A callback function called when required to load more items
-  onLoadMore: () async {
-    ...
-  },
 
   // A callback function called when pull to refresh is triggered
   onRefresh: () async {
