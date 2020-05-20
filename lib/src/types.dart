@@ -2,12 +2,6 @@ import 'package:flutter/widgets.dart';
 
 import 'custom_list_view.dart';
 
-class LoadErrorDetails {
-  final Object error;
-  final StackTrace stackTrace;
-  LoadErrorDetails(this.error, {this.stackTrace});
-}
-
 typedef ItemBuilder = Widget Function(
   BuildContext context,
   int index,
@@ -19,6 +13,6 @@ typedef SeparatorBuilder = Widget Function(
 );
 typedef LoadErrorBuilder = Widget Function(
   BuildContext context,
-  LoadErrorDetails errorDetails,
+  dynamic error,
   CustomListViewState listViewState,
 );

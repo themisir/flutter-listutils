@@ -1,8 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import 'adapters/list_adapter.dart';
 import 'types.dart';
@@ -13,24 +13,29 @@ class CustomListView extends StatefulWidget {
     this.pageSize = 30,
     this.header,
     this.footer,
-    this.empty,
+    this.empty = const SizedBox(),
     this.adapter,
     @required this.itemBuilder,
     this.loadingBuilder,
     this.separatorBuilder,
     this.errorBuilder,
-    this.padding,
+    this.padding = EdgeInsets.zero,
     this.physics,
     this.itemCount,
-    this.onLoadMore,
+    // DEPRECATED! Use [adapter] instead of onLoadMore
+    @deprecated this.onLoadMore,
     this.onRefresh,
     this.disableRefresh = false,
     this.scrollDirection = Axis.vertical,
     this.shrinkWrap = false,
     this.debounceDuration = const Duration(milliseconds: 500),
+    double itemExtend,
+    this.distanceToLoadMore = 200,
   })  : assert(itemBuilder != null),
         assert(adapter != null || itemCount != null),
         assert(debounceDuration != null),
+        assert(distanceToLoadMore != null),
+        this.itemExtend = separatorBuilder == null ? itemExtend : null,
         super(key: key);
 
   /// Item count to request on each time list is scrolled to the end
@@ -90,22 +95,42 @@ class CustomListView extends StatefulWidget {
   /// Debounce duration to throttle load requests
   final Duration debounceDuration;
 
+  /// Item height
+  final double itemExtend;
+
+  /// Scroll distance to the end in pixels required to load more
+  final double distanceToLoadMore;
+
   @override
   CustomListViewState createState() => CustomListViewState();
 }
 
-class CustomListViewState extends State<CustomListView> {
-  List items = [];
-  Future future;
-  bool reachedToEnd = false;
+enum _CLVStatus { idle, loading, error }
 
+class _CLVState {
+  const _CLVState(this.status, [this.error]);
+
+  static const idle = const _CLVState(_CLVStatus.idle);
+  static const loading = const _CLVState(_CLVStatus.loading);
+
+  static _CLVState createError(dynamic e) => _CLVState(_CLVStatus.error, e);
+
+  final _CLVStatus status;
+  final dynamic error;
+}
+
+class CustomListViewState extends State<CustomListView> {
+  final ValueNotifier<_CLVState> _stateNotifier = ValueNotifier(_CLVState.idle);
+  final List items = [];
+
+  bool _reachedToEnd = false;
   bool _loading = false;
   bool _fetching = false;
-  LoadErrorDetails _errorDetails;
   Timer _loadDebounce;
 
   bool get loading => _loading;
   bool get fetching => _fetching;
+  bool get reachedToEnd => _reachedToEnd;
 
   @override
   void initState() {
@@ -113,23 +138,27 @@ class CustomListViewState extends State<CustomListView> {
     loadMore();
   }
 
+  @override
+  void dispose() {
+    _stateNotifier.dispose();
+    super.dispose();
+  }
+
   Future fetchFromAdapter({int offset, bool merge = true}) async {
     if (_fetching) return;
-
     _fetching = true;
 
     try {
-      var skip = offset ?? items?.length ?? 0;
-      var result = await widget.adapter.getItems(skip, widget.pageSize);
+      int skip = offset ?? items?.length ?? 0;
+      ListItems result = await widget.adapter.getItems(skip, widget.pageSize);
 
       if (mounted) {
         setState(() {
-          reachedToEnd = result.reachedToEnd ?? false;
-          if (merge) {
-            items.addAll(result.items);
-          } else {
-            items = result.items.toList();
+          _reachedToEnd = result.reachedToEnd ?? false;
+          if (merge != true) {
+            items.clear();
           }
+          items.addAll(result.items);
         });
       }
     } finally {
@@ -137,10 +166,8 @@ class CustomListViewState extends State<CustomListView> {
     }
   }
 
-  Future reload() async {
-    future = null;
-    await fetchFromAdapter(offset: 0, merge: false);
-  }
+  /// Clears [items] and loads data from adapter.
+  Future reload() => fetchFromAdapter(offset: 0, merge: false);
 
   Future refresh() async {
     if (widget.onRefresh != null) {
@@ -150,161 +177,174 @@ class CustomListViewState extends State<CustomListView> {
     }
   }
 
-  Future loadMore() async {
-    if (reachedToEnd || _loading) return;
+  void loadMore() {
+    if (_reachedToEnd || _loading) return;
     if (widget.adapter == null && widget.onLoadMore == null) return;
     if (_loadDebounce?.isActive ?? false) _loadDebounce.cancel();
 
     _loadDebounce = Timer(widget.debounceDuration, () async {
       _loading = true;
+      _stateNotifier.value = _CLVState.loading;
 
       try {
         if (widget.adapter != null) {
-          this.future = fetchFromAdapter();
+          await fetchFromAdapter();
         } else {
-          this.future = widget.onLoadMore();
+          await widget.onLoadMore();
         }
-
-        setState(() {});
-
-        await future;
-      } catch (e, stack) {
-        if (mounted) {
-          setState(() {
-            _errorDetails = LoadErrorDetails(e, stackTrace: stack);
-          });
-        }
+        _stateNotifier.value = _CLVState.idle;
+      } catch (e) {
+        _stateNotifier.value = _CLVState.createError(e);
       } finally {
         _loading = false;
       }
     });
   }
 
-  // ignore: missing_return
   bool handleScrollNotification(ScrollNotification notification) {
-    if (notification.depth > 0) return false;
-    if (notification.metrics.pixels == notification.metrics.maxScrollExtent) {
+    if (notification.depth <= 0 &&
+        notification.metrics.maxScrollExtent - notification.metrics.pixels <
+            widget.distanceToLoadMore) {
       loadMore();
     }
+    return false;
   }
 
-  int get itemCount {
-    return widget.itemCount ?? items.length;
+  /// Returns item count
+  int get itemCount => widget.itemCount ?? items.length;
+
+  EdgeInsets _calculatePadding({bool first, bool last}) {
+    EdgeInsets padding = widget.padding;
+    if (widget.scrollDirection == Axis.vertical) {
+      if (first != true) {
+        padding = padding.copyWith(top: 0);
+      }
+      if (last != true) {
+        padding = padding.copyWith(bottom: 0);
+      }
+    } else {
+      if (first != true) {
+        padding = padding.copyWith(left: 0);
+      }
+      if (last != true) {
+        padding = padding.copyWith(right: 0);
+      }
+    }
+    return padding;
   }
 
-  Widget buildItem(BuildContext context, int index) {
-    if (widget.header != null) {
-      if (index == 0) return widget.header;
-      index--;
+  SliverChildDelegate _buildDelegate() {
+    int realItemCount = itemCount;
+
+    if (widget.separatorBuilder != null) {
+      realItemCount = max(realItemCount * 2 - 1, 0);
     }
 
-    if (index < itemCount) {
-      return widget.itemBuilder(
-        context,
-        index,
-        widget.adapter != null ? items[index] : null,
-      );
-    }
+    return SliverChildBuilderDelegate(
+      (context, int index) {
+        if (widget.separatorBuilder != null) {
+          if (index.isEven) {
+            return widget.separatorBuilder(context, index ~/ 2);
+          } else {
+            index = index ~/ 2;
+          }
+        }
 
-    if (widget.empty != null) {
-      if (index == itemCount) {
-        if (itemCount == 0) {
+        return widget.itemBuilder(context, index, items[index]);
+      },
+      semanticIndexCallback: (_, int index) {
+        if (widget.separatorBuilder != null) {
+          return index ~/ 2;
+        } else {
+          return index;
+        }
+      },
+      childCount: realItemCount,
+    );
+  }
+
+  Widget _newBuildList(BuildContext context) {
+    final Widget stateWidget = ValueListenableBuilder<_CLVState>(
+      valueListenable: _stateNotifier,
+      builder: (context, state, _) {
+        if (state.status == _CLVStatus.loading &&
+            widget.loadingBuilder != null) {
+          return widget.loadingBuilder(context);
+        } else if (state.status == _CLVStatus.error &&
+            widget.errorBuilder != null) {
+          return widget.errorBuilder(context, state.error, this);
+        } else if (itemCount == 0) {
           return widget.empty;
         } else {
-          return Container();
+          return SizedBox();
         }
-      }
-      index--;
-    }
+      },
+    );
 
-    if (widget.loadingBuilder != null || widget.errorBuilder != null) {
-      if (index == itemCount) {
-        return Consumer<Future>(
-          builder: (context, future, _) {
-            return FutureBuilder(
-              future: future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return widget.loadingBuilder(context);
-                } else if (widget.errorBuilder != null) {
-                  return Consumer<LoadErrorDetails>(
-                    builder: (context, details, _) {
-                      if (details == null) {
-                        return Container();
-                      } else {
-                        return widget.errorBuilder(context, details, this);
-                      }
-                    },
-                  );
-                } else {
-                  return Container();
-                }
-              },
-            );
-          },
-        );
-      }
-      index--;
-    }
+    final SliverChildDelegate delegate = _buildDelegate();
+    final Widget children =
+        (widget.separatorBuilder == null && widget.itemExtend != null)
+            ? SliverFixedExtentList(
+                delegate: delegate,
+                itemExtent: widget.itemExtend,
+              )
+            : SliverList(delegate: delegate);
 
-    if (widget.footer != null) {
-      if (index == itemCount) return widget.footer;
-      index--;
-    }
+    final List<Widget> slivers = <Widget>[
+      if (widget.header != null) SliverToBoxAdapter(child: widget.header),
+      children,
+      SliverToBoxAdapter(child: stateWidget),
+      if (widget.footer != null) SliverToBoxAdapter(child: widget.footer),
+    ];
 
-    throw Exception('Failed to render list item, the index is out of bounds.');
-  }
+    int i = 0;
 
-  Widget buildList(BuildContext context) {
-    int count = itemCount +
-        (widget.header != null ? 1 : 0) +
-        (widget.footer != null ? 1 : 0) +
-        ((widget.loadingBuilder != null || widget.errorBuilder != null)
-            ? 1
-            : 0) +
-        (widget.empty != null ? 1 : 0);
-
-    if (widget.separatorBuilder == null) {
-      return ListView.builder(
-        padding: widget.padding,
-        physics: widget.physics,
-        scrollDirection: widget.scrollDirection,
-        shrinkWrap: widget.shrinkWrap,
-        itemBuilder: buildItem,
-        itemCount: count,
-      );
-    }
-
-    return ListView.separated(
-      padding: widget.padding,
-      physics: widget.physics,
+    return CustomScrollView(
       scrollDirection: widget.scrollDirection,
       shrinkWrap: widget.shrinkWrap,
-      itemBuilder: buildItem,
-      separatorBuilder: widget.separatorBuilder,
-      itemCount: count,
+      semanticChildCount: itemCount,
+      slivers: slivers.map((sliver) {
+        int index = i++;
+        return SliverPadding(
+          sliver: sliver,
+          padding: _calculatePadding(
+            first: index == 0,
+            last: index == slivers.length,
+          ),
+        );
+      }).toList(),
     );
+  }
+
+
+
+  @override
+  void didUpdateWidget(CustomListView old) {
+    super.didUpdateWidget(old);
+    if (old.adapter != widget.adapter) {
+      if (old.adapter != null && widget.adapter != null) {
+        if (old.adapter.shouldUpdate(widget.adapter) == false) {
+          return;
+        }
+      }
+      reload();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget notificationListener = NotificationListener<ScrollNotification>(
+    final Widget child = NotificationListener<ScrollNotification>(
       onNotification: handleScrollNotification,
-      child: buildList(context),
+      child: _newBuildList(context),
     );
-    Widget content = widget.disableRefresh
-        ? notificationListener
-        : RefreshIndicator(
-            onRefresh: refresh,
-            child: notificationListener,
-          );
 
-    return Provider<Future>.value(
-      value: future,
-      child: Provider<LoadErrorDetails>.value(
-        value: _errorDetails,
-        child: content,
-      ),
+    if (widget.disableRefresh) {
+      return child;
+    }
+
+    return RefreshIndicator(
+      onRefresh: refresh,
+      child: child,
     );
   }
 }

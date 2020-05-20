@@ -58,6 +58,15 @@ class NetworkListAdapter implements BaseListAdapter {
       throw ClientException('HTTP ${response.statusCode}: Failed to fetch');
     }
   }
+
+  @override
+  bool shouldUpdate(NetworkListAdapter old) =>
+      (limitParam != old.limitParam) ||
+      (disablePagination != old.disablePagination) ||
+      (client != old.client) ||
+      (headers != old.headers) ||
+      (offsetParam != old.offsetParam) ||
+      (url != old.url);
 }
 
 String _generateUrl(String url, Map<String, dynamic> params) {

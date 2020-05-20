@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 class ListItems {
@@ -9,6 +10,7 @@ class ListItems {
 
 mixin BaseListAdapter<T> {
   Future<ListItems> getItems(int offset, int limit);
+  bool shouldUpdate(covariant BaseListAdapter<T> old);
 }
 
 class ListAdapter implements BaseListAdapter {
@@ -20,4 +22,7 @@ class ListAdapter implements BaseListAdapter {
   Future<ListItems> getItems(int offset, int limit) {
     return fetchItems(offset, limit);
   }
+
+  @override
+  bool shouldUpdate(ListAdapter old) => fetchItems != old.fetchItems;
 }

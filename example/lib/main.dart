@@ -5,45 +5,51 @@ void main() {
   runApp(MaterialApp(
     title: 'Example',
     home: Scaffold(
-      body: CustomListView(
-        loadingBuilder: CustomListLoading.defaultBuilder,
-        header: Container(
-          height: 50,
-          child: Center(
-            child: Text('Header'),
+      appBar: AppBar(title: Text('🔌 ListView_Utils')),
+      body: SafeArea(
+        child: CustomListView(
+          loadingBuilder: CustomListLoading.defaultBuilder,
+          header: Container(
+            height: 50,
+            child: Center(
+              child: Text('😄 Header'),
+            ),
           ),
-        ),
-        footer: Container(
-          height: 50,
-          child: Center(
-            child: Text('Footer'),
+          footer: Container(
+            height: 50,
+            child: Center(
+              child: Text('🦶 Footer'),
+            ),
           ),
+          adapter: NetworkListAdapter(
+            url: 'https://jsonplaceholder.typicode.com/posts',
+            limitParam: '_limit',
+            offsetParam: '_start',
+          ),
+          errorBuilder: (context, error, state) {
+            return Column(
+              children: <Widget>[
+                Text(error.toString()),
+                RaisedButton(
+                  onPressed: () => state.loadMore(),
+                  child: Text('Retry'),
+                ),
+              ],
+            );
+          },
+          separatorBuilder: (context, _) {
+            return Divider(height: 1);
+          },
+          empty: Center(
+            child: Text('Empty'),
+          ),
+          itemBuilder: (context, _, item) {
+            return ListTile(
+              title: Text(item['title']),
+              leading: Icon(Icons.assignment),
+            );
+          },
         ),
-        adapter: NetworkListAdapter(
-          url: 'https://jsonplaceholder.typicode.com/posts',
-          limitParam: '_limit',
-          offsetParam: '_start',
-        ),
-        errorBuilder: (context, details, state) {
-          return Column(
-            children: <Widget>[
-              Text(details.error.toString()),
-              RaisedButton(
-                onPressed: () => state.loadMore(),
-                child: Text('Retry'),
-              ),
-            ],
-          );
-        },
-        separatorBuilder: (context, _) {
-          return Divider(height: 1);
-        },
-        itemBuilder: (context, _, item) {
-          return ListTile(
-            title: Text(item['title']),
-            leading: Icon(Icons.assignment),
-          );
-        },
       ),
     ),
   ));

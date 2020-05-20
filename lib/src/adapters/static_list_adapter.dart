@@ -19,4 +19,8 @@ class StaticListAdapter implements BaseListAdapter {
       return Future.value(ListItems(items, reachedToEnd: items.length == 0));
     }
   }
+
+  @override
+  bool shouldUpdate(StaticListAdapter old) =>
+      (disablePagination != old.disablePagination) || (data != old.data);
 }

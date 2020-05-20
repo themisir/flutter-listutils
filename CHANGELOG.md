@@ -1,3 +1,12 @@
+## [0.2.0] - 5/20/2020
+
+* Removed `children` property from `CustomListView`
+* Removed `provider` dependency
+* `errorBuilder` method modified. Now accepts: `Widget Function(BuildContext context, dynamic error, CustomListViewState listView)`.
+* `CustomListView` now using [`CustomScrollView`](https://api.flutter.dev/flutter/widgets/CustomScrollView-class.html) instead of `ListView`
+* `onLoadMore` property is deprecated
+* Fixed [#2](https://github.com/TheMisir/flutter-listutils/issues/2)
+
 ## [0.1.6+1] - 3/12/2020
 
 * Fixed memory leak issue
