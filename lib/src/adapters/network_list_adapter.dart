@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart';
-import 'package:http/io_client.dart';
 
 import 'list_adapter.dart';
 
@@ -29,22 +28,22 @@ class NetworkListAdapter implements BaseListAdapter {
     if (client != null) {
       return await fn(client);
     } else {
-      var _client = IOClient();
+      final BaseClient client = Client();
       try {
-        return await fn(_client);
+        return await fn(client);
       } finally {
-        _client.close();
+        client.close();
       }
     }
   }
 
   @override
   Future<ListItems> getItems(int offset, int limit) async {
-    var finalUrl = disablePagination != true
+    String finalUrl = disablePagination != true
         ? _generateUrl(url, {offsetParam: offset, limitParam: limit})
         : url;
 
-    var response = await _withClient((client) {
+    Response response = await _withClient((client) {
       return client.get(finalUrl, headers: headers);
     });
 
