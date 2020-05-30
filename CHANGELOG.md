@@ -1,3 +1,7 @@
+## [0.2.1] - 5/30/2020
+
+* Added browser support to `NetworkListAdapter`
+
 ## [0.2.0] - 5/20/2020
 
 * Removed `children` property from `CustomListView`
