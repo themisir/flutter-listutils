@@ -1,3 +1,7 @@
+## [0.2.2] - 6/5/2020
+
+* Added `ScrollController` support
+
 ## [0.2.1] - 5/30/2020
 
 * Added browser support to `NetworkListAdapter`

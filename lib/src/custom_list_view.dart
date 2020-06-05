@@ -31,6 +31,7 @@ class CustomListView extends StatefulWidget {
     this.debounceDuration = const Duration(milliseconds: 500),
     double itemExtend,
     this.distanceToLoadMore = 200,
+    this.controller,
   })  : assert(itemBuilder != null),
         assert(adapter != null || itemCount != null),
         assert(debounceDuration != null),
@@ -100,6 +101,9 @@ class CustomListView extends StatefulWidget {
 
   /// Scroll distance to the end in pixels required to load more
   final double distanceToLoadMore;
+
+  /// Scroll controller
+  final ScrollController controller;
 
   @override
   CustomListViewState createState() => CustomListViewState();
@@ -263,7 +267,7 @@ class CustomListViewState extends State<CustomListView> {
     );
   }
 
-  Widget _newBuildList(BuildContext context) {
+  Widget _buildList(BuildContext context) {
     final Widget stateWidget = ValueListenableBuilder<_CLVState>(
       valueListenable: _stateNotifier,
       builder: (context, state, _) {
@@ -303,6 +307,7 @@ class CustomListViewState extends State<CustomListView> {
       scrollDirection: widget.scrollDirection,
       shrinkWrap: widget.shrinkWrap,
       semanticChildCount: itemCount,
+      controller: widget.controller,
       slivers: slivers.map((sliver) {
         int index = i++;
         return SliverPadding(
@@ -315,8 +320,6 @@ class CustomListViewState extends State<CustomListView> {
       }).toList(),
     );
   }
-
-
 
   @override
   void didUpdateWidget(CustomListView old) {
@@ -335,7 +338,7 @@ class CustomListViewState extends State<CustomListView> {
   Widget build(BuildContext context) {
     final Widget child = NotificationListener<ScrollNotification>(
       onNotification: handleScrollNotification,
-      child: _newBuildList(context),
+      child: _buildList(context),
     );
 
     if (widget.disableRefresh) {
