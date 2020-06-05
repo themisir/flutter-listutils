@@ -1,6 +1,12 @@
-# 📃 ListView_Utils
+## listview_utils
 
-Additional utils for flutter `ListView` component.
+ [![pub package](https://img.shields.io/pub/v/listview_utils.svg)](https://pub.dev/packages/listview_utils)
+ [![GitHub](https://img.shields.io/github/license/TheMisir/flutter-listutils)](https://github.com/TheMisir/flutter-listutils/blob/master/LICENSE)
+ ![Platforms](https://img.shields.io/badge/platforms-web%20%7C%20android%20%7C%20ios-blueviolet)
+
+---
+
+Superchange `ListView` with custom adapters to add infinite scrolling.
 
 ## Migration guide from 0.1.X to 0.2.Y
 
@@ -69,7 +75,7 @@ Add those lines to `pubspec.yaml` file and run `flutter pub get`.
 
 ```yaml
 dependencies:
-  listview_utils: <latest>
+  listview_utils: ">=0.2.2 <2.0.0"
 ```
 
 Check out [Installing](https://pub.dev/packages/listview_utils#-installing-tab-) tab for more details.
