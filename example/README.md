@@ -1,6 +1,6 @@
 # example
 
-listutils example application
+A new Flutter project.
 
 ## Getting Started
 

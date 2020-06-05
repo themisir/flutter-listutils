@@ -4,7 +4,14 @@ import 'package:listview_utils/listview_utils.dart';
 void main() {
   runApp(MaterialApp(
     title: 'Example',
-    home: Scaffold(
+    home: HomeScreen(),
+  ));
+}
+
+class HomeScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
       appBar: AppBar(title: Text('🔌 ListView_Utils')),
       body: SafeArea(
         child: CustomListView(
@@ -51,6 +58,6 @@ void main() {
           },
         ),
       ),
-    ),
-  ));
+    );
+  }
 }
