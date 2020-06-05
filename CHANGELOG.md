@@ -1,6 +1,6 @@
 ## [0.2.2] - 6/5/2020
 
-* Added `ScrollController` support
+* Added [`ScrollController`](https://api.flutter.dev/flutter/widgets/ScrollController-class.html) support
 
 ## [0.2.1] - 5/30/2020
 
