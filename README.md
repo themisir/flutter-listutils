@@ -6,6 +6,24 @@
 
 Superchange `ListView` with custom adapters to add infinite scrolling.
 
+## Example
+
+```dart
+CustomListView(
+  loadingBuilder: CustomListLoading.defaultBuilder,
+  itemBuilder: (context, index, item) {
+    return ListTile(
+      title: Text(item['title']),
+    );
+  },
+  adapter: NetworkListAdapter(
+    url: 'https://jsonplaceholder.typicode.com/posts',
+    limitParam: '_limit',
+    offsetParam: '_start',
+  ),
+);
+```
+
 ## Migration guide from 0.1.X to 0.2.Y
 
 ### `children` property removed
@@ -155,22 +173,4 @@ NetworkListAdapter(
   limitParam: '_limit',
   offsetParam: '_start',
 ),
-```
-
-## Example
-
-```dart
-CustomListView(
-  loadingBuilder: CustomListLoading.defaultBuilder,
-  itemBuilder: (context, index, item) {
-    return ListTile(
-      title: Text(item['title']),
-    );
-  },
-  adapter: NetworkListAdapter(
-    url: 'https://jsonplaceholder.typicode.com/posts',
-    limitParam: '_limit',
-    offsetParam: '_start',
-  ),
-);
 ```
