@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'adapters/list_adapter.dart';
 import 'types.dart';
 
-class CustomListView extends StatefulWidget {
+class CustomListView<T> extends StatefulWidget {
   const CustomListView({
     Key key,
     this.pageSize = 30,
@@ -52,7 +52,7 @@ class CustomListView extends StatefulWidget {
   final Widget empty;
 
   /// List adapter used to fetch items dynamically
-  final BaseListAdapter adapter;
+  final BaseListAdapter<T> adapter;
 
   /// Loading widget builder, displayed when data is fetching from [adapter] or
   /// [onLoadMore] is called

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:listview_utils/listview_utils.dart';
 
-class StaticListAdapter implements BaseListAdapter {
-  final Iterable data;
+class StaticListAdapter<T> implements BaseListAdapter<T> {
+  final Iterable<T> data;
   final bool disablePagination;
 
   const StaticListAdapter({
@@ -11,7 +11,7 @@ class StaticListAdapter implements BaseListAdapter {
   }) : assert(data != null);
 
   @override
-  Future<ListItems> getItems(int offset, int limit) {
+  Future<ListItems<T>> getItems(int offset, int limit) {
     if (disablePagination ?? false) {
       return Future.value(ListItems(data, reachedToEnd: data.length == 0));
     } else {
@@ -21,6 +21,6 @@ class StaticListAdapter implements BaseListAdapter {
   }
 
   @override
-  bool shouldUpdate(StaticListAdapter old) =>
+  bool shouldUpdate(StaticListAdapter<T> old) =>
       (disablePagination != old.disablePagination) || (data != old.data);
 }

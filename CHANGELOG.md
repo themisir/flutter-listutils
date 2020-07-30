@@ -1,3 +1,7 @@
+## [0.2.4] - 7/30/2020
+
+* Storong type support
+
 ## [0.2.2] - 6/5/2020
 
 * Added [`ScrollController`](https://api.flutter.dev/flutter/widgets/ScrollController-class.html) support

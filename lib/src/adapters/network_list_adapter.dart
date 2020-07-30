@@ -5,7 +5,7 @@ import 'package:http/http.dart';
 
 import 'list_adapter.dart';
 
-class NetworkListAdapter implements BaseListAdapter {
+class NetworkListAdapter<T> implements BaseListAdapter<T> {
   final BaseClient client;
   final String url;
   final String limitParam;
@@ -38,7 +38,7 @@ class NetworkListAdapter implements BaseListAdapter {
   }
 
   @override
-  Future<ListItems> getItems(int offset, int limit) async {
+  Future<ListItems<T>> getItems(int offset, int limit) async {
     String finalUrl = disablePagination != true
         ? _generateUrl(url, {offsetParam: offset, limitParam: limit})
         : url;
@@ -59,7 +59,7 @@ class NetworkListAdapter implements BaseListAdapter {
   }
 
   @override
-  bool shouldUpdate(NetworkListAdapter old) =>
+  bool shouldUpdate(NetworkListAdapter<T> old) =>
       (limitParam != old.limitParam) ||
       (disablePagination != old.disablePagination) ||
       (client != old.client) ||
