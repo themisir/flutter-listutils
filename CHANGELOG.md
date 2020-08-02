@@ -1,3 +1,8 @@
+## [0.2.5] - 8/2/2020
+
+* Fixed [#6](https://github.com/TheMisir/flutter-listutils/issues/6)
+* Removed deprecated `onLoadMore` parameter
+
 ## [0.2.4] - 7/30/2020
 
 * Storong type support
