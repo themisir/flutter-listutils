@@ -22,8 +22,6 @@ class CustomListView<T> extends StatefulWidget {
     this.padding = EdgeInsets.zero,
     this.physics,
     this.itemCount,
-    // DEPRECATED! Use [adapter] instead of onLoadMore
-    @deprecated this.onLoadMore,
     this.onRefresh,
     this.disableRefresh = false,
     this.scrollDirection = Axis.vertical,
@@ -71,9 +69,6 @@ class CustomListView<T> extends StatefulWidget {
   /// zero and re-load entries from [adapter]
   final AsyncCallback onRefresh;
 
-  /// Called when list is scrolled to the end
-  final AsyncCallback onLoadMore;
-
   /// Set true if you would like to disable pull to refres
   /// gesture
   final bool disableRefresh;
@@ -90,7 +85,8 @@ class CustomListView<T> extends StatefulWidget {
   /// Scroll direction
   final Axis scrollDirection;
 
-  /// TODO: Add description
+  /// Whether the extent of the scroll view in the [scrollDirection] should be
+  /// determined by the contents being viewed.
   final bool shrinkWrap;
 
   /// Debounce duration to throttle load requests
@@ -124,7 +120,8 @@ class _CLVState {
 }
 
 class CustomListViewState extends State<CustomListView> {
-  final ValueNotifier<_CLVState> _stateNotifier = ValueNotifier(_CLVState.idle);
+  final ValueNotifier<_CLVState> _stateNotifier =
+      ValueNotifier(_CLVState.loading);
   final List items = [];
 
   bool _reachedToEnd = false;
@@ -139,7 +136,10 @@ class CustomListViewState extends State<CustomListView> {
   @override
   void initState() {
     super.initState();
-    loadMore();
+
+    if (!loadMore()) {
+      _stateNotifier.value = _CLVState.idle;
+    }
   }
 
   @override
@@ -181,9 +181,11 @@ class CustomListViewState extends State<CustomListView> {
     }
   }
 
-  void loadMore() {
-    if (_reachedToEnd || _loading) return;
-    if (widget.adapter == null && widget.onLoadMore == null) return;
+  /// Returns true if loading was triggered, or false if loading is not
+  /// triggered because of might be already loading or there is not a source for
+  /// loading data from.
+  bool loadMore() {
+    if (_reachedToEnd || _loading || widget.adapter == null) return false;
     if (_loadDebounce?.isActive ?? false) _loadDebounce.cancel();
 
     _loadDebounce = Timer(widget.debounceDuration, () async {
@@ -191,11 +193,7 @@ class CustomListViewState extends State<CustomListView> {
       _stateNotifier.value = _CLVState.loading;
 
       try {
-        if (widget.adapter != null) {
-          await fetchFromAdapter();
-        } else {
-          await widget.onLoadMore();
-        }
+        await fetchFromAdapter();
         _stateNotifier.value = _CLVState.idle;
       } catch (e) {
         _stateNotifier.value = _CLVState.createError(e);
@@ -203,6 +201,8 @@ class CustomListViewState extends State<CustomListView> {
         _loading = false;
       }
     });
+
+    return true;
   }
 
   bool handleScrollNotification(ScrollNotification notification) {
