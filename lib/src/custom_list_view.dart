@@ -11,6 +11,7 @@ class CustomListView<T> extends StatefulWidget {
   const CustomListView({
     Key key,
     this.pageSize = 30,
+    this.offsetCount = 1,
     this.header,
     this.footer,
     this.empty = const SizedBox(),
@@ -39,6 +40,9 @@ class CustomListView<T> extends StatefulWidget {
 
   /// Item count to request on each time list is scrolled to the end
   final int pageSize;
+
+  /// Offset count to start first page from
+  final int offsetCount;
 
   /// Widget to be be displayed on the top of other items
   final Widget header;
@@ -171,7 +175,7 @@ class CustomListViewState extends State<CustomListView> {
   }
 
   /// Clears [items] and loads data from adapter.
-  Future reload() => fetchFromAdapter(offset: 0, merge: false);
+  Future reload() => fetchFromAdapter(offset: widget.offsetCount, merge: false);
 
   Future refresh() async {
     if (widget.onRefresh != null) {
