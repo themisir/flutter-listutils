@@ -10,7 +10,7 @@ import 'types.dart';
 class CustomListView<T> extends StatefulWidget {
   const CustomListView({
     Key key,
-    this.paginationMode = 0,
+    this.paginationMode = CustomListView.OFFSET_MODE,
     this.pageSize = 30,
     this.initialOffset = 0,
     this.header,
