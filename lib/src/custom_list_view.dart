@@ -10,6 +10,7 @@ import 'types.dart';
 class CustomListView<T> extends StatefulWidget {
   const CustomListView({
     Key key,
+    this.paginationMode = CustomListView.OFFSET_MODE,
     this.pageSize = 30,
     this.initialOffset = 0,
     this.header,
@@ -35,8 +36,16 @@ class CustomListView<T> extends StatefulWidget {
         assert(adapter != null || itemCount != null),
         assert(debounceDuration != null),
         assert(distanceToLoadMore != null),
+        assert(paginationMode == CustomListView.OFFSET_MODE ||
+            paginationMode == CustomListView.PAGE_MODE),
         this.itemExtend = separatorBuilder == null ? itemExtend : null,
         super(key: key);
+
+  static const OFFSET_MODE = 0;
+  static const PAGE_MODE = 1;
+
+  /// pagination mode (offset / page)
+  final int paginationMode;
 
   /// Item count to request on each time list is scrolled to the end
   final int pageSize;
@@ -127,6 +136,7 @@ class CustomListViewState extends State<CustomListView> {
   final ValueNotifier<_CLVState> _stateNotifier =
       ValueNotifier(_CLVState.loading);
   final List items = [];
+  int _pageNumber = 0;
 
   bool _reachedToEnd = false;
   bool _loading = false;
@@ -136,11 +146,13 @@ class CustomListViewState extends State<CustomListView> {
   bool get loading => _loading;
   bool get fetching => _fetching;
   bool get reachedToEnd => _reachedToEnd;
+  int get pageNumber => _pageNumber;
 
   @override
   void initState() {
     super.initState();
 
+    _pageNumber = widget.initialOffset;
     if (!loadMore()) {
       _stateNotifier.value = _CLVState.idle;
     }
@@ -157,7 +169,14 @@ class CustomListViewState extends State<CustomListView> {
     _fetching = true;
 
     try {
-      int skip = offset ?? items?.length ?? 0;
+      int skip;
+      if (widget.paginationMode == CustomListView.OFFSET_MODE)
+        skip = offset ?? items?.length ?? 0;
+      else if (widget.paginationMode == CustomListView.PAGE_MODE) {
+        skip = offset ?? _pageNumber;
+        _pageNumber++;
+      } else
+        skip = 0;
       ListItems result = await widget.adapter.getItems(skip, widget.pageSize);
 
       if (mounted) {
@@ -175,7 +194,8 @@ class CustomListViewState extends State<CustomListView> {
   }
 
   /// Clears [items] and loads data from adapter.
-  Future reload() => fetchFromAdapter(offset: widget.initialOffset, merge: false);
+  Future reload() =>
+      fetchFromAdapter(offset: widget.initialOffset, merge: false);
 
   Future refresh() async {
     if (widget.onRefresh != null) {
