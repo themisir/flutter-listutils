@@ -7,10 +7,26 @@ import 'package:flutter/material.dart';
 import 'adapters/list_adapter.dart';
 import 'types.dart';
 
+enum PaginationMode {
+  /// Offset increases by item count
+  ///
+  /// Example:
+  /// items?_offset=0
+  /// items?_offset=10
+  offset,
+
+  /// Offset increases by +1
+  ///
+  /// Example:
+  /// items?_offset=1
+  /// items?_offset=2
+  page
+}
+
 class CustomListView<T> extends StatefulWidget {
   const CustomListView({
     Key key,
-    this.paginationMode = CustomListView.OFFSET_MODE,
+    this.paginationMode = PaginationMode.offset,
     this.pageSize = 30,
     this.initialOffset = 0,
     this.header,
@@ -36,16 +52,13 @@ class CustomListView<T> extends StatefulWidget {
         assert(adapter != null || itemCount != null),
         assert(debounceDuration != null),
         assert(distanceToLoadMore != null),
-        assert(paginationMode == CustomListView.OFFSET_MODE ||
-            paginationMode == CustomListView.PAGE_MODE),
+        assert(paginationMode != null),
+        assert(initialOffset != null),
         this.itemExtend = separatorBuilder == null ? itemExtend : null,
         super(key: key);
 
-  static const OFFSET_MODE = 0;
-  static const PAGE_MODE = 1;
-
-  /// pagination mode (offset / page)
-  final int paginationMode;
+  /// Pagination mode (offset / page)
+  final PaginationMode paginationMode;
 
   /// Item count to request on each time list is scrolled to the end
   final int pageSize;
@@ -133,11 +146,10 @@ class _CLVState {
 }
 
 class CustomListViewState extends State<CustomListView> {
-  final ValueNotifier<_CLVState> _stateNotifier =
-      ValueNotifier(_CLVState.loading);
+  final _stateNotifier = ValueNotifier<_CLVState>(_CLVState.loading);
   final List items = [];
-  int _pageNumber = 0;
 
+  int _offset = 0;
   bool _reachedToEnd = false;
   bool _loading = false;
   bool _fetching = false;
@@ -146,14 +158,15 @@ class CustomListViewState extends State<CustomListView> {
   bool get loading => _loading;
   bool get fetching => _fetching;
   bool get reachedToEnd => _reachedToEnd;
-  int get pageNumber => _pageNumber;
+  int get offset => _offset;
 
   @override
   void initState() {
     super.initState();
 
-    _pageNumber = widget.initialOffset;
-    if (!loadMore()) {
+    _offset = widget.initialOffset;
+
+    if (!loadMore(offset: widget.initialOffset)) {
       _stateNotifier.value = _CLVState.idle;
     }
   }
@@ -165,19 +178,24 @@ class CustomListViewState extends State<CustomListView> {
   }
 
   Future fetchFromAdapter({int offset, bool merge = true}) async {
-    if (_fetching) return;
-    _fetching = true;
+    if (_fetching) {
+      return;
+    } else {
+      _fetching = true;
+    }
+
+    switch (widget.paginationMode) {
+      case PaginationMode.offset:
+        _offset = offset ?? items?.length ?? _offset;
+        break;
+
+      case PaginationMode.page:
+        _offset = offset ?? (_offset + 1);
+        break;
+    }
 
     try {
-      int skip;
-      if (widget.paginationMode == CustomListView.OFFSET_MODE)
-        skip = offset ?? items?.length ?? 0;
-      else if (widget.paginationMode == CustomListView.PAGE_MODE) {
-        skip = offset ?? _pageNumber;
-        _pageNumber++;
-      } else
-        skip = 0;
-      ListItems result = await widget.adapter.getItems(skip, widget.pageSize);
+      var result = await widget.adapter.getItems(_offset, widget.pageSize);
 
       if (mounted) {
         setState(() {
@@ -208,7 +226,7 @@ class CustomListViewState extends State<CustomListView> {
   /// Returns true if loading was triggered, or false if loading is not
   /// triggered because of might be already loading or there is not a source for
   /// loading data from.
-  bool loadMore() {
+  bool loadMore({int offset}) {
     if (_reachedToEnd || _loading || widget.adapter == null) return false;
     if (_loadDebounce?.isActive ?? false) _loadDebounce.cancel();
 
@@ -217,7 +235,7 @@ class CustomListViewState extends State<CustomListView> {
       _stateNotifier.value = _CLVState.loading;
 
       try {
-        await fetchFromAdapter();
+        await fetchFromAdapter(offset: offset);
         _stateNotifier.value = _CLVState.idle;
       } catch (e) {
         _stateNotifier.value = _CLVState.createError(e);

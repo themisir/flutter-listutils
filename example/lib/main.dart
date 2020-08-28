@@ -15,6 +15,8 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(title: Text('🔌 ListView_Utils')),
       body: SafeArea(
         child: CustomListView(
+          paginationMode: PaginationMode.page,
+          initialOffset: 1,
           loadingBuilder: CustomListLoading.defaultBuilder,
           header: Container(
             height: 50,

@@ -1,3 +1,8 @@
+## [0.2.6] - 8/28/2020
+
+* Added `initialOffset` property - [#7](https://github.com/TheMisir/flutter-listutils/pull/7)
+* Added `paginationMode` property - [#8](https://github.com/TheMisir/flutter-listutils/pull/8)
+
 ## [0.2.5] - 8/2/2020
 
 * Fixed [#6](https://github.com/TheMisir/flutter-listutils/issues/6)
