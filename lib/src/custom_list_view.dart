@@ -350,6 +350,7 @@ class CustomListViewState extends State<CustomListView> {
       shrinkWrap: widget.shrinkWrap,
       semanticChildCount: itemCount,
       controller: widget.controller,
+      physics: widget.physics,
       slivers: slivers.map((sliver) {
         int index = i++;
         return SliverPadding(
