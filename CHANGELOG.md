@@ -1,3 +1,7 @@
+## [0.2.6+1] - 8/29/2020
+
+* Pass `physics` parameter to `CustomScrollView` - [#9](https://github.com/TheMisir/flutter-listutils/pull/9)
+
 ## [0.2.6] - 8/28/2020
 
 * Added `initialOffset` property - [#7](https://github.com/TheMisir/flutter-listutils/pull/7)
