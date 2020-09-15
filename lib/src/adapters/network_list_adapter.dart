@@ -12,6 +12,7 @@ class NetworkListAdapter<T> implements BaseListAdapter<T> {
   final String offsetParam;
   final bool disablePagination;
   final Map<String, String> headers;
+  final String dataPath;
 
   const NetworkListAdapter({
     @required this.url,
@@ -20,6 +21,7 @@ class NetworkListAdapter<T> implements BaseListAdapter<T> {
     this.disablePagination = false,
     this.client,
     this.headers,
+    this.dataPath,
   })  : assert(url != null),
         assert(disablePagination == true || limitParam != null),
         assert(disablePagination == true || offsetParam != null);
@@ -48,7 +50,9 @@ class NetworkListAdapter<T> implements BaseListAdapter<T> {
     });
 
     if (response.statusCode < 300) {
-      Iterable items = json.decode(utf8.decode(response.bodyBytes));
+      Iterable items = dataPath == null
+          ? json.decode(utf8.decode(response.bodyBytes))
+          : json.decode(utf8.decode(response.bodyBytes))[dataPath];
       return ListItems(
         items,
         reachedToEnd: disablePagination == true || items.length == 0,
