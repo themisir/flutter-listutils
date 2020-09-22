@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: CustomListView(
           paginationMode: PaginationMode.page,
-          initialOffset: 1,
+          initialOffset: 0,
           loadingBuilder: CustomListLoading.defaultBuilder,
           header: Container(
             height: 50,
