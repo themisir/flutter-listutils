@@ -289,7 +289,7 @@ class CustomListViewState extends State<CustomListView> {
     return SliverChildBuilderDelegate(
       (context, int index) {
         if (widget.separatorBuilder != null) {
-          if (index.isEven) {
+          if (index.isOdd) {
             return widget.separatorBuilder(context, index ~/ 2);
           } else {
             index = index ~/ 2;
