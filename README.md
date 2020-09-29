@@ -126,6 +126,14 @@ CustomListView(
       return ListItems([ ... ]);
     },
   ),
+  
+  //Pagination Mode [offset/page] (default: offset)
+  paginationMode: PaginationMode.offset 
+  
+  //Initial offset (default: 0)
+  initialOffset: 0
+  
+
 
   // A callback function to build list items (required)
   itemBuilder: (BuildContext context, int index, dynamic item) {
