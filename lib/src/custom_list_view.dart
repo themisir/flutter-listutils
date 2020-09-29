@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../listview_utils.dart';
 import 'adapters/list_adapter.dart';
 import 'types.dart';
 
@@ -247,15 +248,6 @@ class CustomListViewState extends State<CustomListView> {
     return true;
   }
 
-  bool handleScrollNotification(ScrollNotification notification) {
-    if (notification.depth <= 0 &&
-        notification.metrics.maxScrollExtent - notification.metrics.pixels <
-            widget.distanceToLoadMore) {
-      loadMore();
-    }
-    return false;
-  }
-
   /// Returns item count
   int get itemCount => widget.itemCount ?? items.length;
 
@@ -379,8 +371,9 @@ class CustomListViewState extends State<CustomListView> {
 
   @override
   Widget build(BuildContext context) {
-    final Widget child = NotificationListener<ScrollNotification>(
-      onNotification: handleScrollNotification,
+    final Widget child = PaginationListener(
+      onNextPage: loadMore,
+      distance: widget.distanceToLoadMore,
       child: _buildList(context),
     );
 
