@@ -296,7 +296,11 @@ class CustomListViewState extends State<CustomListView> {
           }
         }
 
-        return widget.itemBuilder(context, index, items[index]);
+        return widget.itemBuilder(
+          context,
+          index,
+          widget.adapter != null ? items[index] : null,
+        );
       },
       semanticIndexCallback: (_, int index) {
         if (widget.separatorBuilder != null) {
