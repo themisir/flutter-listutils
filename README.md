@@ -182,3 +182,90 @@ NetworkListAdapter(
   offsetParam: '_start',
 ),
 ```
+
+## Controllers
+### Scroll controller
+ListView Utils supports Flutter's built-in [`ScrollController`](https://api.flutter.dev/flutter/widgets/ScrollController-class.html),
+which allows for controlling the scrolling position:
+
+```dart
+class _SomeWidgetState extends State<SomeWidget> {
+  ScrollController scrollController = ScrollController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        FlatButton(
+          onPressed: () {
+            scrollController.animateTo(100);
+          },
+          child: const Text('Scroll down'),
+        ),
+        Expanded(
+          child: CustomListView(
+            adapter: ...,
+            scrollController: scrollController,
+            itemBuilder: (context, index, dynamic item) {
+              return ListTile(
+                title: Text(item['title']),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
+}
+```
+
+### List controller
+ListView Utils also supports its own custom controller, which allows for controlling the list of items
+(for example, programmatically refreshing the list):
+
+```dart
+class _SomeWidgetState extends State<SomeWidget> {
+  CustomListViewController listViewController = CustomListViewController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        FlatButton(
+          onPressed: () {
+            listViewController.refresh();
+          },
+          child: const Text('Refresh'),
+        ),
+        Expanded(
+          child: CustomListView(
+            adapter: ...,
+            loadingBuilder: (context) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            scrollController: scrollController,
+            itemBuilder: (context, index, dynamic item) {
+              return ListTile(
+                title: Text(item['title']),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  void dispose() {
+    listViewController.dispose();
+    super.dispose();
+  }
+}
+```
+
