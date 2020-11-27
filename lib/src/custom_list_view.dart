@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../listview_utils.dart';
 import 'adapters/list_adapter.dart';
+import 'controller.dart';
 import 'types.dart';
 
 enum PaginationMode {
@@ -48,6 +49,8 @@ class CustomListView<T> extends StatefulWidget {
     this.debounceDuration = const Duration(milliseconds: 500),
     double itemExtend,
     this.distanceToLoadMore = 200,
+    this.listViewController,
+    this.scrollController,
     this.controller,
   })  : assert(itemBuilder != null),
         assert(adapter != null || itemCount != null),
@@ -55,6 +58,7 @@ class CustomListView<T> extends StatefulWidget {
         assert(distanceToLoadMore != null),
         assert(paginationMode != null),
         assert(initialOffset != null),
+        assert(controller == null || scrollController == null),
         this.itemExtend = separatorBuilder == null ? itemExtend : null,
         super(key: key);
 
@@ -96,7 +100,7 @@ class CustomListView<T> extends StatefulWidget {
   /// zero and re-load entries from [adapter]
   final AsyncCallback onRefresh;
 
-  /// Set true if you would like to disable pull to refres
+  /// Set true if you would like to disable pull to refresh
   /// gesture
   final bool disableRefresh;
 
@@ -125,7 +129,14 @@ class CustomListView<T> extends StatefulWidget {
   /// Scroll distance to the end in pixels required to load more
   final double distanceToLoadMore;
 
+  /// The list view controller
+  final CustomListViewController listViewController;
+
   /// Scroll controller
+  final ScrollController scrollController;
+
+  @Deprecated(
+      'The controller property has been deprecated. Use scrollController instead.')
   final ScrollController controller;
 
   @override
@@ -169,6 +180,10 @@ class CustomListViewState extends State<CustomListView> {
 
     if (!loadMore(offset: widget.initialOffset)) {
       _stateNotifier.value = _CLVState.idle;
+    }
+
+    if (widget.listViewController != null) {
+      widget.listViewController.attach(this);
     }
   }
 
@@ -221,6 +236,30 @@ class CustomListViewState extends State<CustomListView> {
       return widget.onRefresh();
     } else if (widget.adapter != null) {
       return reload();
+    }
+  }
+
+  /// Like [refresh], but shows the loading indicator and the error state
+  Future refreshWithIndicator() async {
+    assert(widget.onRefresh != null || widget.adapter != null);
+
+    if (_loadDebounce?.isActive ?? false) _loadDebounce.cancel();
+
+    setState(() => items.clear());
+    _loading = true;
+    _stateNotifier.value = _CLVState.loading;
+
+    try {
+      if (widget.onRefresh != null) {
+        await widget.onRefresh();
+      } else if (widget.adapter != null) {
+        await reload();
+      }
+      _stateNotifier.value = _CLVState.idle;
+    } catch (e) {
+      _stateNotifier.value = _CLVState.createError(e);
+    } finally {
+      _loading = false;
     }
   }
 
@@ -345,7 +384,7 @@ class CustomListViewState extends State<CustomListView> {
       scrollDirection: widget.scrollDirection,
       shrinkWrap: widget.shrinkWrap,
       semanticChildCount: itemCount,
-      controller: widget.controller,
+      controller: widget.scrollController ?? widget.controller,
       physics: widget.physics,
       slivers: slivers.map((sliver) {
         int index = i++;
@@ -363,6 +402,11 @@ class CustomListViewState extends State<CustomListView> {
   @override
   void didUpdateWidget(CustomListView old) {
     super.didUpdateWidget(old);
+    if (old.listViewController != widget.listViewController &&
+        widget.listViewController != null) {
+      widget.listViewController.attach(this);
+    }
+
     if (old.adapter != widget.adapter) {
       if (old.adapter != null && widget.adapter != null) {
         if (old.adapter.shouldUpdate(widget.adapter) == false) {
