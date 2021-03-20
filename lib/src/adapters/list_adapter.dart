@@ -1,8 +1,5 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-
 class ListItems<T> {
-  final Iterable<T> items;
+  final Iterable<T>? items;
   final bool reachedToEnd;
 
   const ListItems(this.items, {this.reachedToEnd = false});
@@ -10,13 +7,13 @@ class ListItems<T> {
 
 mixin BaseListAdapter<T> {
   Future<ListItems<T>> getItems(int offset, int limit);
-  bool shouldUpdate(covariant BaseListAdapter<T> old);
+  bool shouldUpdate(covariant BaseListAdapter<T>? old);
 }
 
 class ListAdapter<T> implements BaseListAdapter<T> {
   final Future<ListItems<T>> Function(int offset, int limit) fetchItems;
 
-  const ListAdapter({@required this.fetchItems}) : assert(fetchItems != null);
+  const ListAdapter({required this.fetchItems});
 
   @override
   Future<ListItems<T>> getItems(int offset, int limit) {

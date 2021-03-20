@@ -1,17 +1,17 @@
 name: listview_utils
 description: Infinite scrolling list view with multiple data source mode support using adapters. Also supports header, footer widgets.
-version: 0.2.6+1
+version: 1.0.0-nullsafety
 homepage: https://github.com/TheMisir/flutter-listutils
 
 environment:
-  sdk: ">=2.2.2 <3.0.0"
+  sdk: '>=2.12.0 <3.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
   # A composable, multi-platform, Future-based API for HTTP requests.
-  http: ^0.12.0
+  http: ^0.13.0
 
 dev_dependencies:
   flutter_test:

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:listview_utils/listview_utils.dart';
 
 void main() {
-  runApp(MaterialApp(
-    title: 'Example',
-    home: HomeScreen(),
-  ));
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(
+    MaterialApp(
+      title: 'Example',
+      home: HomeScreen(),
+    ),
+  );
 }
 
 class HomeScreen extends StatelessWidget {
@@ -35,11 +38,17 @@ class HomeScreen extends StatelessWidget {
             limitParam: '_limit',
             offsetParam: '_start',
           ),
+          itemBuilder: (context, _, item) {
+            return ListTile(
+              title: Text(item['title']),
+              leading: Icon(Icons.assignment),
+            );
+          },
           errorBuilder: (context, error, state) {
             return Column(
               children: <Widget>[
                 Text(error.toString()),
-                RaisedButton(
+                TextButton(
                   onPressed: () => state.loadMore(),
                   child: Text('Retry'),
                 ),
@@ -52,12 +61,6 @@ class HomeScreen extends StatelessWidget {
           empty: Center(
             child: Text('Empty'),
           ),
-          itemBuilder: (context, _, item) {
-            return ListTile(
-              title: Text(item['title']),
-              leading: Icon(Icons.assignment),
-            );
-          },
         ),
       ),
     );
