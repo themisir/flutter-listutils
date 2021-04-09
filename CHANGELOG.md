@@ -1,3 +1,8 @@
+## [0.2.7] - 10/12/2020
+
+* CustomListView breaks when switching from 0.1.5 to 0.2.6+2 in combination without adapter - [#18](https://github.com/TheMisir/flutter-listutils/issues/18)
+* Export `PaginationListener`.
+
 ## [0.2.6+1] - 8/29/2020
 
 * Pass `physics` parameter to `CustomScrollView` - [#9](https://github.com/TheMisir/flutter-listutils/pull/9)
