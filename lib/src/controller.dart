@@ -1,4 +1,4 @@
-import '../listview_utils.dart';
+import 'custom_list_view.dart';
 
 class CustomListViewController {
   CustomListViewState? _state;

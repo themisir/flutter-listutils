@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:http/http.dart';
+
 import 'list_adapter.dart';
 
 class NetworkListAdapter<T> implements BaseListAdapter<T> {
