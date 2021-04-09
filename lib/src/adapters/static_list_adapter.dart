@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:listview_utils/listview_utils.dart';
 
 class StaticListAdapter<T> implements BaseListAdapter<T> {
@@ -6,13 +5,13 @@ class StaticListAdapter<T> implements BaseListAdapter<T> {
   final bool disablePagination;
 
   const StaticListAdapter({
-    @required this.data,
+    required this.data,
     this.disablePagination = false,
-  }) : assert(data != null);
+  });
 
   @override
   Future<ListItems<T>> getItems(int offset, int limit) {
-    if (disablePagination ?? false) {
+    if (disablePagination) {
       return Future.value(ListItems(data, reachedToEnd: data.length == 0));
     } else {
       var items = data.skip(offset).take(limit).toList();
