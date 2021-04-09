@@ -124,14 +124,14 @@ class CustomListView<T> extends StatefulWidget {
   final double distanceToLoadMore;
 
   /// The list view controller
-  final CustomListViewController listViewController;
+  final CustomListViewController? listViewController;
 
   /// Scroll controller
   final ScrollController? scrollController;
 
   @Deprecated(
       'The controller property has been deprecated. Use scrollController instead.')
-  final ScrollController controller;
+  final ScrollController? controller;
 
   @override
   CustomListViewState createState() => CustomListViewState();
@@ -176,9 +176,7 @@ class CustomListViewState extends State<CustomListView> {
       _stateNotifier.value = _CLVState.idle;
     }
 
-    if (widget.listViewController != null) {
-      widget.listViewController.attach(this);
-    }
+    widget.listViewController?.attach(this);
   }
 
   @override
@@ -237,7 +235,7 @@ class CustomListViewState extends State<CustomListView> {
   Future refreshWithIndicator() async {
     assert(widget.onRefresh != null || widget.adapter != null);
 
-    if (_loadDebounce?.isActive ?? false) _loadDebounce.cancel();
+    if (_loadDebounce?.isActive ?? false) _loadDebounce!.cancel();
 
     setState(() => items.clear());
     _loading = true;
@@ -245,7 +243,7 @@ class CustomListViewState extends State<CustomListView> {
 
     try {
       if (widget.onRefresh != null) {
-        await widget.onRefresh();
+        await widget.onRefresh?.call();
       } else if (widget.adapter != null) {
         await reload();
       }
@@ -398,7 +396,7 @@ class CustomListViewState extends State<CustomListView> {
     super.didUpdateWidget(old);
     if (old.listViewController != widget.listViewController &&
         widget.listViewController != null) {
-      widget.listViewController.attach(this);
+      widget.listViewController!.attach(this);
     }
 
     if (old.adapter != widget.adapter) {

@@ -2,13 +2,12 @@ import 'package:flutter/widgets.dart';
 
 class PaginationListener extends StatelessWidget {
   const PaginationListener({
-    Key key,
+    Key? key,
     this.distance = 200,
     this.maxDepth = 0,
-    @required this.onNextPage,
-    @required this.child,
-  })  : assert(onNextPage != null),
-        super(key: key);
+    required this.onNextPage,
+    required this.child,
+  }) : super(key: key);
 
   final VoidCallback onNextPage;
   final double distance;

@@ -51,7 +51,7 @@ class NetworkListAdapter<T> implements BaseListAdapter<T> {
         reachedToEnd: disablePagination == true || items!.length == 0,
       );
     } else {
-      throw ClientException('HTTP ${response.statusCode}: Failed to fetch');
+      throw Exception('HTTP ${response.statusCode}: Failed to fetch');
     }
   }
 
